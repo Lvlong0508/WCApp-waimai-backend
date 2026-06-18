@@ -3,6 +3,7 @@ package com.gzasc.wechatappwaimai.controller;
 import com.gzasc.wechatappwaimai.dto.WcwmResponse;
 import com.gzasc.wechatappwaimai.service.FileService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,6 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
+@Slf4j
 public class PublicFileController {
 
     private final FileService fileService;
@@ -24,6 +26,7 @@ public class PublicFileController {
         String url = fileService.uploadTempAvatar(file);
         Map<String, String> data = new HashMap<>();
         data.put("url", url);
+        log.info("用户请求临时上传头像：" + url);
         return WcwmResponse.success(data);
     }
 }

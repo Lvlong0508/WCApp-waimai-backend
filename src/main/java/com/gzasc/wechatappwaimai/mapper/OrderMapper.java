@@ -14,5 +14,9 @@ public interface OrderMapper {
 
     long countByUserId(@Param("userId") Long userId);
 
+    List<OrderVO> selectOrderListByShopId(@Param("shopId") Long shopId, @Param("offset") int offset, @Param("size") int size);
+
+    long countByShopId(@Param("shopId") Long shopId);
+
     List<OrderItemVO> selectItemsByOrderId(@Param("orderId") Long orderId);
 }

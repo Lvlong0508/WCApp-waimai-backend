@@ -41,6 +41,13 @@
         WHERE id = #{id}
     </select>
 
+    <select id="selectByOwnerUserId" resultMap="BaseResultMap">
+        SELECT id, name, logo, phone, description, score, status, owner_user_id, create_time, update_time
+        FROM shop
+        WHERE owner_user_id = #{ownerUserId}
+        LIMIT 1
+    </select>
+
     <update id="updateLogo">
         UPDATE shop
         SET logo = #{logo},

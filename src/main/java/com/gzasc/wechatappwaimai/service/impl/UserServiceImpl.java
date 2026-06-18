@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.gzasc.wechatappwaimai.dto.LoginRequest;
 import com.gzasc.wechatappwaimai.entity.User;
 import com.gzasc.wechatappwaimai.mapper.UserMapper;
+import com.gzasc.wechatappwaimai.service.FileService;
 import com.gzasc.wechatappwaimai.service.UserService;
 import com.gzasc.wechatappwaimai.utils.WxApiUtil;
 import com.gzasc.wechatappwaimai.vo.UserVO;
@@ -20,6 +21,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
     private final WxApiUtil wxApiUtil;
+    private final FileService fileService;
 
     @Override
     public Map<String, Object> login(LoginRequest req) {
@@ -42,6 +44,7 @@ public class UserServiceImpl implements UserService {
 
         User user = userMapper.selectByOpenid(openid);
         if (user == null) {
+            // 新用户 → 注册
             LocalDateTime now = LocalDateTime.now();
             user = new User();
             user.setOpenid(openid);
@@ -51,11 +54,42 @@ public class UserServiceImpl implements UserService {
             user.setCreateTime(now);
             user.setUpdateTime(now);
             userMapper.insert(user);
-        } else if (hasNick || hasAvatar) {
-            userMapper.updateProfile(user.getId(),
-                    hasNick ? reqNickName.trim() : null,
-                    hasAvatar ? reqAvatarUrl.trim() : null);
-            user = userMapper.selectById(user.getId());
+
+            // 迁移临时头像到永久目录
+            if (hasAvatar) {
+                String permanentUrl = fileService.moveTempAvatarToPermanent(reqAvatarUrl.trim(), openid);
+                if (!permanentUrl.equals(reqAvatarUrl.trim())) {
+                    userMapper.updateProfile(user.getId(), null, permanentUrl);
+                    user.setAvatarUrl(permanentUrl);
+                }
+            }
+        } else {
+            // 老用户 → 登录，按需更新资料
+            boolean needUpdate = false;
+            String newNick = null;
+            String newAvatar = null;
+
+            if (hasNick && (user.getNickName() == null || user.getNickName().isBlank())) {
+                newNick = reqNickName.trim();
+                needUpdate = true;
+            }
+            if (hasAvatar && (user.getAvatarUrl() == null || user.getAvatarUrl().isBlank())) {
+                String permanentUrl = fileService.moveTempAvatarToPermanent(reqAvatarUrl.trim(), openid);
+                if (!permanentUrl.equals(reqAvatarUrl.trim())) {
+                    newAvatar = permanentUrl;
+                    needUpdate = true;
+                }
+            }
+
+            if (needUpdate) {
+                userMapper.updateProfile(user.getId(), newNick, newAvatar);
+                user = userMapper.selectById(user.getId());
+            }
+
+            // 清理未使用的临时文件
+            if (hasAvatar && user.getAvatarUrl() != null && !user.getAvatarUrl().equals(reqAvatarUrl.trim())) {
+                fileService.deleteTempAvatarByUrl(reqAvatarUrl.trim());
+            }
         }
 
         StpUtil.login(user.getId());

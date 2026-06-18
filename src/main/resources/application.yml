@@ -20,7 +20,7 @@ mybatis:
 
 file:
   upload:
-    path: ./image
+    path: ${user.dir}/image
   access:
     url: http://localhost:8080
 

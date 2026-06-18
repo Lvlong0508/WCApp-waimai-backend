@@ -15,6 +15,8 @@ public interface ShopMapper {
 
     Shop selectById(@Param("id") Long id);
 
+    Shop selectByOwnerUserId(@Param("ownerUserId") Long ownerUserId);
+
     int updateLogo(@Param("id") Long id, @Param("logo") String logo);
 
     int insert(Shop shop);

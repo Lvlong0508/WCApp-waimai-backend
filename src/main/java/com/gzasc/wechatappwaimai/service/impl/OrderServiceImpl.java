@@ -33,4 +33,22 @@ public class OrderServiceImpl implements OrderService {
         result.put("list", list);
         return result;
     }
+
+    @Override
+    public Map<String, Object> listOrdersByShopId(Long shopId, int page, int size) {
+        int currentPage = page <= 0 ? 1 : page;
+        int pageSize = size <= 0 ? 20 : size;
+        int offset = (currentPage - 1) * pageSize;
+
+        long total = orderMapper.countByShopId(shopId);
+        List<OrderVO> list = orderMapper.selectOrderListByShopId(shopId, offset, pageSize);
+        for (OrderVO orderVO : list) {
+            orderVO.setOrderItemList(orderMapper.selectItemsByOrderId(orderVO.getId()));
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("total", total);
+        result.put("list", list);
+        return result;
+    }
 }

@@ -21,6 +21,13 @@
         WHERE id = #{id}
     </select>
 
+    <select id="selectListByShopId" resultMap="BaseResultMap">
+        SELECT id, shop_id, name, image, price, description, status, create_time, update_time
+        FROM product
+        WHERE shop_id = #{shopId}
+        ORDER BY id DESC
+    </select>
+
     <update id="updateImage">
         UPDATE product
         SET image = #{image},

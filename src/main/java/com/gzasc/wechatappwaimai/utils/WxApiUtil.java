@@ -1,7 +1,10 @@
 package com.gzasc.wechatappwaimai.utils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gzasc.wechatappwaimai.config.WeChatProperties;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -10,11 +13,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.time.Duration;
 import java.util.Map;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class WxApiUtil {
 
     private final WeChatProperties weChatProperties;
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private final RestTemplate restTemplate = new RestTemplateBuilder()
             .setConnectTimeout(Duration.ofSeconds(5))
             .setReadTimeout(Duration.ofSeconds(5))
@@ -33,11 +38,19 @@ public class WxApiUtil {
                 .queryParam("grant_type", "authorization_code")
                 .toUriString();
 
-        Map<String, Object> result = restTemplate.getForObject(url, Map.class);
-        Object errcode = result == null ? null : result.get("errcode");
-        if (result == null || errcode instanceof Number && ((Number) errcode).intValue() != 0) {
-            throw new RuntimeException("微信登录失败: " + (result != null ? result.get("errmsg") : "未知错误"));
+        String raw = restTemplate.getForObject(url, String.class);
+        log.info("微信 jscode2session 原始响应: {}", raw);
+
+        try {
+            Map<String, Object> result = objectMapper.readValue(raw, new TypeReference<Map<String, Object>>() {});
+            Object errcode = result.get("errcode");
+            if (errcode != null && (!(errcode instanceof Integer) || ((Integer) errcode) != 0)) {
+                throw new RuntimeException("微信登录失败: " + result.get("errmsg"));
+            }
+            return result;
+        } catch (Exception e) {
+            if (e instanceof RuntimeException) throw (RuntimeException) e;
+            throw new RuntimeException("微信登录响应解析失败: " + e.getMessage());
         }
-        return result;
     }
 }

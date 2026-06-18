@@ -40,7 +40,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public void addAddress(AddressRequest request, Long userId) {
-        if (Integer.valueOf(1).equals(request.getIsDefault())) {
+        if (Boolean.TRUE.equals(request.getIsDefault())) {
             addressMapper.clearDefaultByUserId(userId);
         }
 
@@ -59,7 +59,7 @@ public class AddressServiceImpl implements AddressService {
         if (oldAddress == null) {
             throw new IllegalArgumentException("地址不存在");
         }
-        if (Integer.valueOf(1).equals(request.getIsDefault())) {
+        if (Boolean.TRUE.equals(request.getIsDefault())) {
             addressMapper.clearDefaultByUserId(userId);
         }
 
@@ -87,7 +87,7 @@ public class AddressServiceImpl implements AddressService {
         address.setCity(request.getCity());
         address.setDistrict(request.getDistrict());
         address.setDetail(request.getDetail());
-        address.setIsDefault(request.getIsDefault() == null ? 0 : request.getIsDefault());
+        address.setIsDefault(Boolean.TRUE.equals(request.getIsDefault()) ? 1 : 0);
     }
 
     private AddressVO toAddressVO(Address address) {

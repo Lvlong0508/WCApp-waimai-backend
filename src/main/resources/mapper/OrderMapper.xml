@@ -40,6 +40,27 @@
         WHERE user_id = #{userId}
     </select>
 
+    <select id="selectOrderListByShopId" resultMap="OrderVOResultMap">
+        SELECT o.id,
+               o.order_no,
+               s.name AS shop_name,
+               o.total_price,
+               o.status,
+               o.remark,
+               o.create_time
+        FROM `order` o
+        LEFT JOIN shop s ON o.shop_id = s.id
+        WHERE o.shop_id = #{shopId}
+        ORDER BY o.id DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countByShopId" resultType="long">
+        SELECT COUNT(*)
+        FROM `order`
+        WHERE shop_id = #{shopId}
+    </select>
+
     <select id="selectItemsByOrderId" resultMap="OrderItemVOResultMap">
         SELECT product_id, product_name, quantity
         FROM order_item

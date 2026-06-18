@@ -3,6 +3,7 @@ package com.gzasc.wechatappwaimai.service.impl;
 import com.gzasc.wechatappwaimai.dto.ShopRegisterRequest;
 import com.gzasc.wechatappwaimai.entity.Shop;
 import com.gzasc.wechatappwaimai.mapper.ShopMapper;
+import com.gzasc.wechatappwaimai.service.FileService;
 import com.gzasc.wechatappwaimai.service.ShopService;
 import com.gzasc.wechatappwaimai.vo.ShopVO;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import java.util.Map;
 public class ShopServiceImpl implements ShopService {
 
     private final ShopMapper shopMapper;
+    private final FileService fileService;
 
     @Override
     public Map<String, Object> listShops(int page, int size) {
@@ -38,6 +40,11 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
+    public Shop getShopByOwnerUserId(Long userId) {
+        return shopMapper.selectByOwnerUserId(userId);
+    }
+
+    @Override
     public void registerShop(ShopRegisterRequest request, Long userId) {
         LocalDateTime now = LocalDateTime.now();
         Shop shop = new Shop();
@@ -46,11 +53,13 @@ public class ShopServiceImpl implements ShopService {
         shop.setPhone(request.getPhone());
         shop.setDescription(request.getDescription());
         shop.setScore(BigDecimal.ZERO);
-        shop.setStatus(0);
+        shop.setStatus(1);
         shop.setOwnerUserId(userId);
         shop.setCreateTime(now);
         shop.setUpdateTime(now);
         shopMapper.insert(shop);
+
+        fileService.moveTempShopLogoToPermanent(request.getLogo(), shop.getId(), userId);
     }
 
     private ShopVO toShopVO(Shop shop) {

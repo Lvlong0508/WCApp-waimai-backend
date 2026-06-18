@@ -10,5 +10,5 @@ public class AddressRequest {
     private String city;
     private String district;
     private String detail;
-    private Integer isDefault;
+    private Boolean isDefault;
 }

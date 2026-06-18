@@ -155,6 +155,79 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    public String uploadTempShopLogo(MultipartFile file, Long userId) {
+        validateFile(file);
+
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.isBlank()) {
+            throw new IllegalArgumentException("文件名不能为空");
+        }
+        String extension = FileUtil.extName(originalFilename).toLowerCase();
+        if (!Arrays.asList("png", "jpg", "jpeg").contains(extension)) {
+            throw new IllegalArgumentException("只支持 png/jpg 格式的图片");
+        }
+
+        String datePart = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String relativeDir = "temp_shoplogo/" + datePart;
+        File dir = new File(uploadPath, relativeDir);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        String fileName = System.currentTimeMillis() + "_" + randomLetters() + "." + extension;
+        File destFile = new File(dir, fileName);
+        try {
+            file.transferTo(destFile);
+        } catch (IOException e) {
+            throw new RuntimeException("文件保存失败: " + e.getMessage());
+        }
+
+        return accessUrl + "/image/" + relativeDir + "/" + fileName;
+    }
+
+    @Override
+    public String moveTempShopLogoToPermanent(String tempUrl, Long shopId, Long userId) {
+        if (tempUrl == null || !tempUrl.contains("/image/temp_shoplogo/")) {
+            return tempUrl;
+        }
+        String relative = tempUrl.substring(tempUrl.indexOf("/image/") + "/image/".length());
+        File srcFile = new File(uploadPath, relative);
+        if (!srcFile.exists()) {
+            return tempUrl;
+        }
+
+        String extension = FileUtil.extName(srcFile.getName()).toLowerCase();
+        String relativeDir = "shoplogo/" + shopId;
+        File dir = new File(uploadPath, relativeDir);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        String fileName = shopId + "_" + randomLetters() + "." + extension;
+        File destFile = new File(dir, fileName);
+        try {
+            java.nio.file.Files.move(srcFile.toPath(), destFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException("店铺Logo迁移失败: " + e.getMessage());
+        }
+
+        String savePath = relativeDir + "/" + fileName;
+        UploadFile uploadFile = new UploadFile();
+        uploadFile.setUserId(userId);
+        uploadFile.setOriginalName(srcFile.getName());
+        uploadFile.setSavePath(savePath);
+        uploadFile.setSize(destFile.length());
+        uploadFile.setCreateTime(LocalDateTime.now());
+        uploadFile.setEntityType("shoplogo");
+        uploadFile.setEntityId(shopId);
+        fileMapper.insert(uploadFile);
+
+        String permanentUrl = accessUrl + "/image/" + relativeDir + "/" + fileName;
+        shopMapper.updateLogo(shopId, permanentUrl);
+        return permanentUrl;
+    }
+
+    @Override
     public String uploadTempAvatar(MultipartFile file) {
         validateFile(file);
 
@@ -183,5 +256,43 @@ public class FileServiceImpl implements FileService {
         }
 
         return accessUrl + "/image/" + relativeDir + "/" + fileName;
+    }
+
+    @Override
+    public String moveTempAvatarToPermanent(String tempUrl, String openid) {
+        if (tempUrl == null || !tempUrl.contains("/image/temp_avatar/")) {
+            return tempUrl;
+        }
+        String relative = tempUrl.substring(tempUrl.indexOf("/image/") + "/image/".length());
+        File srcFile = new File(uploadPath, relative);
+        if (!srcFile.exists()) {
+            return tempUrl;
+        }
+
+        String extension = FileUtil.extName(srcFile.getName()).toLowerCase();
+        String relativeDir = "avatar/" + openid;
+        File dir = new File(uploadPath, relativeDir);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        String fileName = openid + "." + extension;
+        File destFile = new File(dir, fileName);
+        try {
+            java.nio.file.Files.move(srcFile.toPath(), destFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException("头像迁移失败: " + e.getMessage());
+        }
+
+        return accessUrl + "/image/" + relativeDir + "/" + fileName;
+    }
+
+    public void deleteTempAvatarByUrl(String tempUrl) {
+        if (tempUrl == null || !tempUrl.contains("/image/temp_avatar/")) return;
+        String relative = tempUrl.substring(tempUrl.indexOf("/image/") + "/image/".length());
+        File file = new File(uploadPath, relative);
+        if (file.exists()) {
+            file.delete();
+        }
     }
 }
