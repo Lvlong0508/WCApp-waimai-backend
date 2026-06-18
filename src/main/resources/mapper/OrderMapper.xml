@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gzasc.wechatappwaimai.mapper.OrderMapper">
+
+    <resultMap id="OrderVOResultMap" type="com.gzasc.wechatappwaimai.vo.OrderVO">
+        <id column="id" property="id"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="shop_name" property="shopName"/>
+        <result column="total_price" property="totalPrice"/>
+        <result column="status" property="status"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <resultMap id="OrderItemVOResultMap" type="com.gzasc.wechatappwaimai.vo.OrderItemVO">
+        <result column="product_id" property="productId"/>
+        <result column="product_name" property="productName"/>
+        <result column="quantity" property="quantity"/>
+    </resultMap>
+
+    <select id="selectOrderListByUserId" resultMap="OrderVOResultMap">
+        SELECT o.id,
+               o.order_no,
+               s.name AS shop_name,
+               o.total_price,
+               o.status,
+               o.remark,
+               o.create_time
+        FROM `order` o
+        LEFT JOIN shop s ON o.shop_id = s.id
+        WHERE o.user_id = #{userId}
+        ORDER BY o.id DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countByUserId" resultType="long">
+        SELECT COUNT(*)
+        FROM `order`
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="selectItemsByOrderId" resultMap="OrderItemVOResultMap">
+        SELECT product_id, product_name, quantity
+        FROM order_item
+        WHERE order_id = #{orderId}
+        ORDER BY id ASC
+    </select>
+
+</mapper>

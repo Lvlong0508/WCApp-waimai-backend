@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gzasc.wechatappwaimai.mapper.AddressMapper">
+
+    <resultMap id="BaseResultMap" type="com.gzasc.wechatappwaimai.entity.Address">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="name" property="name"/>
+        <result column="phone" property="phone"/>
+        <result column="province" property="province"/>
+        <result column="city" property="city"/>
+        <result column="district" property="district"/>
+        <result column="detail" property="detail"/>
+        <result column="is_default" property="isDefault"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.gzasc.wechatappwaimai.entity.Address" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO address (user_id, name, phone, province, city, district, detail, is_default, create_time, update_time)
+        VALUES (#{userId}, #{name}, #{phone}, #{province}, #{city}, #{district}, #{detail}, #{isDefault}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="update" parameterType="com.gzasc.wechatappwaimai.entity.Address">
+        UPDATE address
+        SET name = #{name},
+            phone = #{phone},
+            province = #{province},
+            city = #{city},
+            district = #{district},
+            detail = #{detail},
+            is_default = #{isDefault},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+          AND user_id = #{userId}
+    </update>
+
+    <update id="clearDefaultByUserId">
+        UPDATE address
+        SET is_default = 0
+        WHERE user_id = #{userId}
+    </update>
+
+    <select id="selectDefaultByUserId" resultMap="BaseResultMap">
+        SELECT id, user_id, name, phone, province, city, district, detail, is_default, create_time, update_time
+        FROM address
+        WHERE user_id = #{userId}
+          AND is_default = 1
+        LIMIT 1
+    </select>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT id, user_id, name, phone, province, city, district, detail, is_default, create_time, update_time
+        FROM address
+        WHERE user_id = #{userId}
+        ORDER BY is_default DESC, id DESC
+    </select>
+
+    <select id="selectByIdAndUserId" resultMap="BaseResultMap">
+        SELECT id, user_id, name, phone, province, city, district, detail, is_default, create_time, update_time
+        FROM address
+        WHERE id = #{id}
+          AND user_id = #{userId}
+    </select>
+
+    <delete id="deleteByIdAndUserId">
+        DELETE FROM address
+        WHERE id = #{id}
+          AND user_id = #{userId}
+    </delete>
+
+</mapper>

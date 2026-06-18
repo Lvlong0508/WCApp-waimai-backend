@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gzasc.wechatappwaimai.mapper.ShopMapper">
+
+    <resultMap id="BaseResultMap" type="com.gzasc.wechatappwaimai.entity.Shop">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="logo" property="logo"/>
+        <result column="phone" property="phone"/>
+        <result column="description" property="description"/>
+        <result column="score" property="score"/>
+        <result column="status" property="status"/>
+        <result column="owner_user_id" property="ownerUserId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.gzasc.wechatappwaimai.entity.Shop" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO shop (name, logo, phone, description, score, status, owner_user_id, create_time, update_time)
+        VALUES (#{name}, #{logo}, #{phone}, #{description}, #{score}, #{status}, #{ownerUserId}, #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="selectOpenShops" resultMap="BaseResultMap">
+        SELECT id, name, logo, phone, description, score, status, owner_user_id, create_time, update_time
+        FROM shop
+        WHERE status = 1
+        ORDER BY id DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countOpenShops" resultType="long">
+        SELECT COUNT(*)
+        FROM shop
+        WHERE status = 1
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, name, logo, phone, description, score, status, owner_user_id, create_time, update_time
+        FROM shop
+        WHERE id = #{id}
+    </select>
+
+    <update id="updateLogo">
+        UPDATE shop
+        SET logo = #{logo},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

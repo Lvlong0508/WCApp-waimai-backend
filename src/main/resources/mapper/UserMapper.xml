@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gzasc.wechatappwaimai.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.gzasc.wechatappwaimai.entity.User">
+        <id column="id" property="id"/>
+        <result column="openid" property="openid"/>
+        <result column="unionid" property="unionid"/>
+        <result column="nick_name" property="nickName"/>
+        <result column="avatar_url" property="avatarUrl"/>
+        <result column="phone" property="phone"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.gzasc.wechatappwaimai.entity.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user (openid, unionid, nick_name, avatar_url, phone, create_time, update_time)
+        VALUES (#{openid}, #{unionid}, #{nickName}, #{avatarUrl}, #{phone}, #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="selectByOpenid" resultMap="BaseResultMap">
+        SELECT id, openid, unionid, nick_name, avatar_url, phone, create_time, update_time
+        FROM user
+        WHERE openid = #{openid}
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, openid, unionid, nick_name, avatar_url, phone, create_time, update_time
+        FROM user
+        WHERE id = #{id}
+    </select>
+
+    <update id="updateAvatarUrl">
+        UPDATE user
+        SET avatar_url = #{avatarUrl},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateProfile">
+        UPDATE user
+        <set>
+            <if test="nickName != null and nickName != ''">nick_name = #{nickName},</if>
+            <if test="avatarUrl != null and avatarUrl != ''">avatar_url = #{avatarUrl},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>
