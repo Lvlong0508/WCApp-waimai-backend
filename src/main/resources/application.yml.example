@@ -27,5 +27,5 @@ file:
     url: http://localhost:8080
 
 wechat:
-  appid: your_appid         # 替换为真实 appid
-  secret: your_secret    # 替换为真实 secret
+  appid: your_appid
+  secret: your_secret
