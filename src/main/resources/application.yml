@@ -26,6 +26,6 @@ file:
   access:
     url: http://localhost:8080
 
-wechat:
-  appid: your_appid         # 替换为真实 appid
-  secret: your_secret    # 替换为真实 secret
+#wechat:
+#  appid: your_appid         # 替换为真实 appid
+#  secret: your_secret    # 替换为真实 secret
